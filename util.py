@@ -105,7 +105,7 @@ def load_dataset(dataset, dataset_dir):
     return X, y
 
 
-def similarity(X, metric):
+def similarity(X, our_X, metric):
     '''Computes the similarity between each pair of examples in X.
 
     Args
@@ -118,6 +118,7 @@ def similarity(X, metric):
     # print(f'Computing similarity for {metric}...', flush=True)
     start = time.time()
     dists = sklearn.metrics.pairwise_distances(X, metric=metric, n_jobs=1)
+    dists += sklearn.metrics.pairwise_distances(our_X, metric=metric, n_jobs=1)
     # dists = gdist(X, X, optimize_level=0, output='cpu')
     elapsed = time.time() - start
 
@@ -281,12 +282,12 @@ def get_facility_location_submodular_order(S, B, c, smtk=0, no=0, stoch_greedy=0
     return order, sz, greedy_time, F_val
 
 
-def faciliy_location_order(c, X, y, metric, num_per_class, smtk, no, stoch_greedy, weights=None):
+def faciliy_location_order(c, X, our_X, y, metric, num_per_class, smtk, no, stoch_greedy, weights=None):
     class_indices = np.where(y == c)[0]
     print(c)
     print(class_indices)
     print(len(class_indices))
-    S, S_time = similarity(X[class_indices], metric=metric)
+    S, S_time = similarity(X[class_indices], our_X[class_indices],  metric=metric)
     order, cluster_sz, greedy_time, F_val = get_facility_location_submodular_order(
         S, num_per_class, c, smtk, no, stoch_greedy, weights)
     return class_indices[order], cluster_sz, greedy_time, S_time
@@ -427,7 +428,7 @@ def save_all_orders_and_weights(folder, X, metric='l2', stoch_greedy=False, y=No
     # return vals
 
 
-def get_orders_and_weights(B, X, metric, smtk, no=0, stoch_greedy=0, y=None, weights=None, equal_num=False, outdir='.'):
+def get_orders_and_weights(B, X, our_X, metric, smtk, no=0, stoch_greedy=0, y=None, weights=None, equal_num=False, outdir='.'):
     '''
     Ags
     - X: np.array, shape [N, d]
@@ -475,7 +476,7 @@ def get_orders_and_weights(B, X, metric, smtk, no=0, stoch_greedy=0, y=None, wei
     #     lambda c: faciliy_location_order(c, X, y, metric, num_per_class[c], smtk, stoch_greedy, weights), classes))
     # pool.terminate()
     order_mg_all, cluster_sizes_all, greedy_times, similarity_times = zip(*map(
-        lambda c: faciliy_location_order(c, X, y, metric, num_per_class[c], smtk, no, stoch_greedy, weights), classes))
+        lambda c: faciliy_location_order(c, X, our_X, y, metric, num_per_class[c], smtk, no, stoch_greedy, weights), classes))
 
     order_mg, weights_mg = [], []
     if equal_num:
