@@ -344,8 +344,14 @@ def test(method='sgd', data='covtype', exp_decay=1, subset_size=1., greedy=1, sh
                     train_y = np.zeros(np.shape(train_y), dtype=int)
                     folder += '_all'
 
+                our_data = []
+                for i in range(len(val_data)):
+                    grad = model.gradient(val_data[i], val_target[i], l2_reg=reg)
+                    our_data += grad * train_data[i] 
+                    if i in order:
+                        sub_grad += grad * weights_all[i]
                 order, weights, _, _, ordering_time, similarity_time = util.get_orders_and_weights(
-                    int(subset_size * len(train_data)), train_data, 'euclidean', 0, 0, False, train_y)
+                    int(subset_size * len(train_data)), train_data, our_data, 'euclidean', 0, 0, False, train_y)
 
                 """ use the following to calculate the ordering for various subset sizes """
                 # util.save_all_orders_and_weights(folder, train_data, metric=metric,
