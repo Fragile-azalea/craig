@@ -1,3 +1,5 @@
+**Its code is based on https://github.com/baharanm/craig. Our changes are named as our_X.**
+
 # craig
 
 ICML Paper: Data-efficient Training of Machine Learning Models
